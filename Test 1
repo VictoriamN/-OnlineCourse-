@@ -4,7 +4,7 @@ output: html_document
 ---
 title: Test 1
 subtitle: "Linguistic data: quantitative analysis and visualisation"
-author: "George Moroz, Olga Lyashevskaya, Ilya Schurov"
+author: Victoria Naumova
 date: '25 Jan 2018'
 output: html_document
 ---
