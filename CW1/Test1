@@ -34,7 +34,8 @@ test_d
 Select the 3rd element of the vector `test_a`.  
 Please provide your code here:  
 
-### 1.4 test_a <- [3] 
+### 1.4 element <- test_a[c(3)]
+element
 
 Select the 3rd, 4th and 5th elements of the vector `test_a` and assign the result to the vector `test_c`.
 Please provide your code here:  
