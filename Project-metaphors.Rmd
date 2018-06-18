@@ -1,0 +1,395 @@
+---
+title: "Project-Metaphors"
+author: "Naumova Vika"
+date: 
+output: pdf_document 
+
+---
+# Metaphors of verbs of “falling” in Spanish and French
+#Introduction
+#Being an area of synchronous linguistics, Lexical typology is still less known than typology in general. However, every year with each new project it is gaining more weight.  Lexical typology studies the structure, similarities and differences of Lexical-semantic fields in different languages. Typological features in semantics can be determined by analyzing the compatibility of words in the context of specific structures. Even though describing all the vocabulary of one language is impossible, we can still take a specific fragment of it, for example verbs, which are refer to the process of falling. 
+#In the present paper, 8 verbs of falling were analyzed in French and Spanish. This work was carried out within the framework of the current project of the Moscow Lexical-typological group (MLexT), which is why this frame approach was adopted. In the course of research, the corpus analysis of two data sets was performed, the structure of the semantic field and its specificity were revealed on the material of two languages. 
+#Despite the fact that French and Spanish are closely related languages, the lexical field of falling is not completely identical in them. It should be emphasized that different verbs can have different semantic shifts.  
+#The objective of the present paper is to compare two metaphoric fields of ‘falling’ in French and Spanish. 
+#Methodological literature review 
+#In 1980, Lakoff and Johnson published a seminal work on metaphor that would go on to set the direction of metaphor research for years to come. 
+#In the present paper, the methodological framework was mostly based on the work of E.V. Rakhilina, T.I. Reznikova “Frame approach to lexical typology” (Rakhilina, Reznikova 2013). In this article ‘frame approach’ and ‘frame concept’ are considered in detail, and the authors propose a possible plan for a typological research. 
+#In the article T.I. Reznikova and A.S. Vyrenkova “Semantics of falling: a cross-linguistic approach” (Reznikova, Vyrenkova 2015) provides a cross-linguistic understanding of the area of falling on the material of more than 20 languages. This work is regarded as a kind of starting point for this research.
+#Hypotheses: 
+#0)	All chosen verbs will show the same way of metaphoric formation. This means, that every verb there is the same number of nouns, which are metaphoric and non-metaphoric (or both). 
+#1)	In every verb group of French or Spanish there is at least one ‘strong (main)’ verb, which covers most of possible cases. 
+#2)	Most of metaphors in both French and Spanish could be observed in the following fields (economics, politics, abstract noun blogs, and weather). 
+#Data.
+#The material of the work was a sample of nouns, consisting of 1800 lexical units. In French several following verbs were taken: tomber, chuter and descendre and 300 examples for each of them. In Spanish: caer, bajar and descender accordingly. The data was taken from SketchEngine, (French Web 2012 (frTenTen12) 9,889,689,889) and (Spanish Web 2011 (esTenTen11, Eu + Am) 9,497,213,009). 
+
+
+```{r}
+library(ggplot2)
+library(readxl)
+library(plyr)
+```
+
+# Let's get started! Reading the data.  All data, as it was mentioned above, are organised in two excel tables. There are French and Spanish ones accordingly.At the same time, the very structure of the tables is quite simple. As following from the idea of 'frame approach' it contains 'verb itself (3 diffrent ones)', subjects (precisely those nouns with the highest frequency in the corpus)', their frequency (in the table there are two kinds of frequency, however the research deals only with 'frequency1'), field (with different tags), metaphor (0 stands for non-metaphor noun, 0,1 creates metaphors in some cases, 1 - pure metaphor). 
+```{r}
+data1French <- read_excel('D:/Projects-R/Project-metaphors/French-nouns_Cat_1.xlsx')
+data1French$metaphor <- as.factor(data1French$metaphor)
+levels(data1French$metaphor) <- c('0', '0/1', '1')
+data1French$field <- as.factor(data1French$field)
+data1French <- data1French[is.na(data1French$field)==F, ]
+```
+# The following steps are:
+# 1) The data type should be changed. 2) 'As.factor function' helps us to convert a column into a factor column. 3) Using 'levels function' provides access to the levels attribute of a variable.
+
+```{r}
+data2Spanish <- read_excel('D:/Projects-R/Project-metaphors/Spanish-nouns_Cat_2.xlsx')
+data2Spanish$metaphor <- as.factor(data2Spanish$metaphor)
+levels(data2Spanish$metaphor) <- c('0', '0/1', '1')
+data2Spanish$field <- as.factor(data2Spanish$field)
+data2Spanish <- data2Spanish[is.na(data1French$field)==F, ]
+```
+# French blog 
+# Coming up to the concept of metaphors itself. I need to check numbers before starting the visualisation (for my better understanding of the whole picture). As it could be marked the verb "baisser" and "chuter" form the number of metaphors higher then "tomber". But it is not the case, the matter is in the frequency of nouns. 
+```{r}
+table(data1French$verb, data1French$metaphor) # contingency table 
+```
+
+# Let's just have a look at frequencies of those nouns with 1 (metaphor formation)
+```{r}
+data1French$frequency1[data1French$metaphor == '1']
+```
+# The way of chi-square test for French 
+
+```{r}
+data1French %>%
+  count(verb, field_new) %>% 
+  select(verb, field_new, n) %>% 
+  spread(field_new, n, fill = 0)->
+  table
+m <- matrix(unlist(table[, -1]), 3, 8)
+m
+chisq.test(m)
+```
+
+# Just with some histograms on each of three verbs there could be made some following predictions. Such as: 1) the verb "tomber" is most frequent one. The objective here is just to visualize the shape of the distribution and to understand the future work of density plots.
+
+```{r}
+hist(data1French$frequency1[data1French$metaphor == '1' & data1French$verb == 'tomber'])
+```
+```{r}
+hist(data1French$frequency1[data1French$metaphor == '1' & data1French$verb == 'baisser'])
+```
+```{r}
+hist(data1French$frequency1[data1French$metaphor == '1' & data1French$verb == 'chuter'])
+```
+
+# And here at the following densities plots it is clear, that "tomber" is the most frequent verb in all analysed cases. How could this statement be proved? In the x-axis scale there are numbers of nouns with their frequencies (from 0-300 nouns, because in general about 900 nouns are analysed). In the y-axis there are probability densities instead of frequencies. 
+```{r}
+# Density plot for Frequency1
+ggplot(data1French[data1French$metaphor == '1', ], aes(x = frequency1))+
+  geom_density(aes(fill = verb), alpha = 0.7)+
+  scale_y_continuous('Density')+
+  scale_x_continuous('Frequency', limits = c(0, 300))+
+  ggtitle('Density plot of verb metaphors')
+```
+
+
+
+# French. However, to analyse the whole situation, it is better to analyse each of three verbs. 
+```{r}
+ggplot(data1French[is.na(data1French$metaphor) == F, ], aes(verb))+
+  geom_bar(aes(fill = metaphor), position = position_fill())+
+  scale_y_continuous('Number of cases')+
+  scale_x_discrete('Verb')+
+  ggtitle('Barplot of verb metaphors')
+```
+
+```{r}
+ggplot(data1French[is.na(data1French$metaphor) == F, ], aes(verb))+
+  geom_bar(aes(fill = metaphor), position = position_dodge())+
+  scale_y_continuous('Number of cases')+
+  scale_x_discrete('Verb')+
+  ggtitle('Barplot of verb metaphors')
+```
+
+```{r}
+ggplot(data1French[data1French$metaphor == '1', ], aes(x = frequency1))+
+  geom_density(aes(fill = verb), alpha = 0.7)+
+  scale_y_continuous('Density')+
+  scale_x_continuous('Frequency', limits = c(0, 300))+
+  ggtitle('Density plot of verb metaphors')
+```
+ 
+
+# Spanish blog. Firstly, I would like to analyse the categorical data of Spanish metaphors. As it could be seen, all three verbs show very wide combinatory. However, at this moment, we are not so interested in general numbers as in every field of metaphors.
+```{r}
+table(data2Spanish$verb, data2Spanish$metaphor) # contingency table 
+```
+
+
+# Let's just have a look at frequencies of nouns (metaphorical). Here there are only numbers, which will be then visualised. 
+
+```{r}
+data2Spanish$frequency1[data2Spanish$metaphor == '1']
+```
+```{r}
+data2Spanish %>%
+  count(verb, field_new) %>% 
+  select(verb, field_new, n) %>% 
+  spread(field_new, n, fill = 0)->
+  table
+m <- matrix(unlist(table[, -1]), 3, 8)
+m
+chisq.test(m)
+```
+```{r}
+hist(data2Spanish$frequency1[data2Spanish$metaphor == '1' & data2Spanish$verb == 'caer'])
+```
+```{r}
+hist(data2Spanish$frequency1[data2Spanish$metaphor == '1' & data2Spanish$verb == 'descender'])
+```
+```{r}
+hist(data2Spanish$frequency1[data2Spanish$metaphor == '1' & data2Spanish$verb == 'bajar'])
+```
+
+# Spanish 
+# If presenting the whole number of cases in 100 %, we can see the following picture, which show that 50% of all nouns are presented with tree Spanish verbs. At the same time, "bajar" contains 75% metaphors. However, here we deal with all nouns, not taking into consideration their frequency. But I will do later. 
+```{r}
+ggplot(data2Spanish[is.na(data2Spanish$metaphor) == F, ], aes(verb))+
+  geom_bar(aes(fill = metaphor), position = position_fill())+
+  scale_y_continuous('Number of cases')+
+  scale_x_discrete('Verb')+
+  ggtitle('Barplot of verb metaphors')
+```
+
+```{r}
+ggplot(data2Spanish[is.na(data2Spanish$metaphor) == F, ], aes(verb))+
+  geom_bar(aes(fill = metaphor), position = position_dodge())+
+  scale_y_continuous('Number of cases')+
+  scale_x_discrete('Verb')+
+  ggtitle('Barplot of verb metaphors')
+```
+
+# Spanish: the most frequent verb.This verb is "caer". 
+
+```{r}
+ggplot(data2Spanish[data2Spanish$metaphor == '1', ], aes(x = frequency1))+
+  geom_density(aes(fill = verb), alpha = 0.7)+
+  scale_y_continuous('Density')+
+  scale_x_continuous('Frequency', limits = c(0, 300))+
+  ggtitle('Density plot of verb metaphors')
+```
+
+# Barplots of metaphors for each and every verb (French). Here the 0-hypothesis is challanged. Every verb shows high level of collocability. 
+
+```{r}
+ggplot(data1French[is.na(data1French$metaphor) == F & data1French$verb == 'tomber', ], aes(metaphor))+
+  geom_bar(aes(fill = metaphor))+
+  ggtitle('Barplot for the verb \'tomber\'')
+```
+
+```{r}
+ggplot(data1French[is.na(data1French$metaphor) == F & data1French$verb == 'baisser', ], aes(metaphor))+
+  geom_bar(aes(fill = metaphor))+
+  ggtitle('Barplot for the verb \'baisser\'')
+```
+
+```{r}
+ggplot(data1French[is.na(data1French$metaphor) == F & data1French$verb == 'chuter', ], aes(metaphor))+
+  geom_bar(aes(fill = metaphor))+
+  ggtitle('Barplot for the verb \'chuter\'')
+```
+
+
+# Barplots of 'special field' metaphors for each and every verb (French)
+# Within the third hypothesis we can predict that there are some 'fields', where most of nouns was used. Let's look at the table, which clearly shows us several main metaphorical fields, such as economics, politics, society, weather and a blog of abstract nouns. 
+
+```{r}
+table(data1French$verb, data1French$field) # contingency table
+```
+# And the next step is to show for certain fileds of each French verb of "falling". Thus, in the economics field we see the leader - tomber. It could be explained in the following way, in the y-axis there are probability densities instead of frequencies. This shows us that most of nouns (which were the same sometimes for every verb) are mostly used with 'tomber'. 
+```{r}
+ggplot(data1French[data1French$field == 'r:abstr', ], aes(verb))+
+  geom_bar(aes(fill = verb))+
+  ggtitle('Barplot for the field \'economics\'')
+```
+
+# For example, at the next barplot we don't see "chuter", which means that this verb simply isn't used in describing forecasts. 
+
+```{r}
+ggplot(data1French[data1French$field == 't:weather', ], aes(verb))+
+  geom_bar(aes(fill = verb))+
+  ggtitle('Barplot for the field \'weather\'')
+``` 
+# The next case is quite similar with 'economics' situation. The leader is again 'tomber'.
+
+```{r}
+ggplot(data1French[data1French$field == 'r:abstr', ], aes(verb))+
+  geom_bar(aes(fill = verb))+
+  ggtitle('Barplot for the field \'r:abstr\'') 
+```
+
+# Barplots of metaphors for each and every verb (Spanish)
+
+
+```{r}
+ggplot(data2Spanish[is.na(data2Spanish$metaphor) == F & data2Spanish$verb == 'caer', ], aes(metaphor))+
+  geom_bar(aes(fill = metaphor))+
+  ggtitle('Barplot for the verb \'caer\'')
+```
+
+```{r}
+ggplot(data2Spanish[is.na(data2Spanish$metaphor) == F & data2Spanish$verb == 'descender', ], aes(metaphor))+
+  geom_bar(aes(fill = metaphor))+
+  ggtitle('Barplot for the verb \'descender\'')
+```
+
+```{r}
+ggplot(data2Spanish[is.na(data2Spanish$metaphor) == F & data2Spanish$verb == 'bajar', ], aes(metaphor))+
+  geom_bar(aes(fill = metaphor))+
+  ggtitle('Barplot for the verb \'bajar\'')
+```
+
+
+# Barplots of 'special field' metaphors for each and every verb (Spanish)
+# It is really interesting to notice that in Spanish the leader verb of economics filed is 'descender'. Apart from French, where the strong verb "tomber" cover all metaphors. 
+
+
+```{r}
+table(data2Spanish$verb, data2Spanish$field) # contingency table
+```
+
+
+```{r}
+ggplot(data2Spanish[data2Spanish$field == 'r:abstr', ], aes(verb))+
+  geom_bar(aes(fill = verb))+
+  ggtitle('Barplot for the field \'economics\'')
+```
+
+# At the same time, weather in Spanish could be broadcast by all three verbs of "falling", where the leader is "caer".
+
+```{r}
+ggplot(data2Spanish[data2Spanish$field == 't:weather', ], aes(verb))+
+  geom_bar(aes(fill = verb))+
+  ggtitle('Barplot for the field \'weather\'')
+``` 
+
+# Taking into consideration the next pic, we can say that any abstract nouns in Spanish could be used in combination with three verbs of "falling". 
+
+```{r}
+ggplot(data2Spanish[data2Spanish$field == 'r:abstr', ], aes(verb))+
+  geom_bar(aes(fill = verb))+
+  ggtitle('Barplot for the field \'r:abstr\'') 
+```
+
+
+#Examples of Pie Charts (French)
+# aggregate(pos ~ verb + metaphor, data, length)
+```{r}
+ggplot(data1French[is.na(data1French$metaphor) == F & data1French$verb == 'tomber', ], aes(x = factor(1), fill = metaphor))+
+  geom_bar(aes(fill = metaphor), position = 'stack', width = 1)+
+  coord_polar("y", start=0)+
+  theme_void()+
+  # facet_grid(.~verb)+
+  # geom_text(aes(x = factor(1), y = metaphor, label = c(1, 5, 5)))+
+  ggtitle('Pie chart for the verb \'tomber\'')
+```
+```{r}
+ggplot(data1French[is.na(data1French$metaphor) == F & data1French$verb == 'baisser', ], aes(x = factor(1), fill = metaphor))+
+  geom_bar(aes(fill = metaphor), position = 'stack', width = 1)+
+  coord_polar("y", start=0)+
+  theme_void()+
+  ggtitle('Pie chart for the verb \'baisser\'')
+```
+```{r}
+ggplot(data1French[is.na(data1French$metaphor) == F & data1French$verb == 'chuter', ], aes(x = factor(1), fill = metaphor))+
+  geom_bar(aes(fill = metaphor), position = 'stack', width = 1)+
+  coord_polar("y", start=0)+
+  theme_void()+
+  ggtitle('Pie chart for the verb \'chuter\'')
+```
+
+```{r}
+ggplot(data1French[data1French$field == 'economics', ], aes(x = factor(1), fill = factor(verb)))+
+  geom_bar(position = 'stack', width = 1)+
+  coord_polar("y", start=0)+
+  theme_void()+
+  ggtitle('Pie chart for the field \'ecoonomics\'')
+```
+
+```{r}
+ggplot(data1French[data1French$field == 't:weather', ], aes(x = factor(1), fill = factor(verb)))+
+  geom_bar(position = 'stack', width = 1)+
+  coord_polar("y", start=0)+
+  theme_void()+
+  ggtitle('Pie chart for the field \'weather\'')
+```
+
+```{r}
+ggplot(data1French[data1French$field == 'r:abstr', ], aes(x = factor(1), fill = factor(verb)))+
+  geom_bar(position = 'stack', width = 1)+
+  coord_polar("y", start=0)+
+  theme_void()+
+  ggtitle('Pie chart for the field \'r:abstr\'')
+```
+
+#Examples of Pie Charts for Spanish
+# aggregate(pos ~ verb + metaphor, data, length)
+```{r}
+ggplot(data2Spanish[is.na(data2Spanish$metaphor) == F & data1French$verb == 'tomber', ], aes(x = factor(1), fill = metaphor))+
+  geom_bar(aes(fill = metaphor), position = 'stack', width = 1)+
+  coord_polar("y", start=0)+
+  theme_void()+
+  # facet_grid(.~verb)+
+  # geom_text(aes(x = factor(1), y = metaphor, label = c(1, 5, 5)))+
+  ggtitle('Pie chart for the verb \'tomber\'')
+```
+```{r}
+ggplot(data2Spanish[is.na(data2Spanish$metaphor) == F & data1French$verb == 'baisser', ], aes(x = factor(1), fill = metaphor))+
+  geom_bar(aes(fill = metaphor), position = 'stack', width = 1)+
+  coord_polar("y", start=0)+
+  theme_void()+
+  ggtitle('Pie chart for the verb \'baisser\'')
+```
+```{r}
+ggplot(data2Spanish[is.na(data2Spanish$metaphor) == F & data1French$verb == 'chuter', ], aes(x = factor(1), fill = metaphor))+
+  geom_bar(aes(fill = metaphor), position = 'stack', width = 1)+
+  coord_polar("y", start=0)+
+  theme_void()+
+  ggtitle('Pie chart for the verb \'chuter\'')
+```
+
+```{r}
+ggplot(data2Spanish[data2Spanish$field == 'economics', ], aes(x = factor(1), fill = factor(verb)))+
+  geom_bar(position = 'stack', width = 1)+
+  coord_polar("y", start=0)+
+  theme_void()+
+  ggtitle('Pie chart for the field \'economics\'')
+```
+
+```{r}
+ggplot(data2Spanish[data2Spanish$field == 't:weather', ], aes(x = factor(1), fill = factor(verb)))+
+  geom_bar(position = 'stack', width = 1)+
+  coord_polar("y", start=0)+
+  theme_void()+
+  ggtitle('Pie chart for the field \'weather\'')
+```
+
+```{r}
+ggplot(data2Spanish[data2Spanish$field == 'r:abstr', ], aes(x = factor(1), fill = factor(verb)))+
+  geom_bar(position = 'stack', width = 1)+
+  coord_polar("y", start=0)+
+  theme_void()+
+  ggtitle('Pie chart for the field \'r:abstr\'')
+```
+
+#Conclusion 
+#Hypotheses: 
+#0)	All chosen verbs will show the same way of metaphoric formation. This means, that every verb there is the same number of nouns, which are metaphoric and non-metaphoric (or both) / rejected
+#1)	In every verb group of French or Spanish there is at least one ‘strong (main)’ verb, which covers most of possible cases / proved
+#2)	Most of metaphors in both French and Spanish could be observed in the following fields (economics,  abstract noun blogs and weather) / proved
+
+# In this paper, prototypical situations of falling in two languages were considered. About 1800 nouns used with selected verbs were examined and analyzed. Then their circle of use was outlined in direct and figurative meanings.
+#The following ways of metaphoric shifts were distinguished: 1) the same nouns can occur in the context of a literal and portable ‘falling’; 2) most of the French and Spanish metaphors were noted in the economic, abstract and weather spheres. The distinctive feature of each of the semantic fields is dominating of one verb, which covers most of the situations of falling and similar contexts.
+#There are ‘tomber’ in French and ‘caer’ in Spanish. 
+#Thus, the semantic fall fields in French and Spanish are distinguished by their breadth and versatility. However, there is a certain similarity between the French and Spanish semantic fields. Some prototypical situations were noted in which ‘strong tomber’ and ‘strong caer’ were used, which characterize abrupt changes and processes, while the other verbs do not have strong contextual differences.
+
